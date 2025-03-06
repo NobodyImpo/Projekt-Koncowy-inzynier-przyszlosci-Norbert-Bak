@@ -4,12 +4,12 @@ using namespace std;
 
 string wyodrebnij(string linia, int cel)
 {
-    string odpowiedz;
+    string odpowiedz="";
     int przecinek=1;
-    for(int i=0;i<sizeof(linia);i++)
+    for(int i=0;i<linia.size();i++)
     {
         if(przecinek==cel){
-            odpowiedz=odpowiedz+linia[i];
+            odpowiedz=odpowiedz + linia[i];
         }
         if(linia[i]==',')
         {
