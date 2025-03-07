@@ -16,26 +16,43 @@ string wyodrebnij(string linia, int cel)//funkcja wyodrebnia konkretną komór z
     return odpowiedz;
 }
 
-float okresl_entropie(vector<vector<int>> a)
+float okresl_entropie(vector<vector<int>> a, int cel)
 {
+    vector<vector<int>> pogrupowane;//zawiera pogrupowane wartości
+    int juz_pogrupowane = 0;
+    for(int i=0; i<a.size(); i++){//iteruje przez wszystkie wersy a
+        juz_pogrupowane=0;
+        for(int b=0; b<pogrupowane.size();b++)//iteruje przez wszystkie wersy pogrupowanie
+        {
+            if(a[i][cel]==pogrupowane[b][0])//jeśli wers z a jest do już istniejącej
+            {
+                pogrupowane[b][1]=pogrupowane[b][1]+a[i][9];//jeśli wiersz w wektora a już się znajduje w pogrupowane to dodaje wartość
+                juz_pogrupowane++;
+            }   
+        }
+        if(juz_pogrupowane==0)
+        {
+            pogrupowane.push_back({a[i][cel], a[i][9]});//jeśli wiersz nie znajduje się w pogrupowane to go dodaje
+        }
+    }
     int max=0;
     int min=0;
     float suma=0;
-    for(int i=0; i<size; i++)
+    for(int i=0; i<pogrupowane.size(); i++)
     {
-        suma=suma+a[i][9];
+        suma=suma+pogrupowane[i][1];
     }
-    max=a[0];
-    for(int i=1; i<size; i++)
+    max=pogrupowane[0][1];
+    for(int i=1; i<pogrupowane.size(); i++)
     {
-        if(a[i]>a[i-1]){max=a[i];}
+        if(pogrupowane[i][1]>pogrupowane[i-1][1]){max=pogrupowane[i][1];}
     }
-    min=a[0];
-    for(int i=1; i<size; i++)
+    min=pogrupowane[0][1];
+    for(int i=1; i<pogrupowane.size(); i++)
     {
-        if(a[i]<a[i-1]){min=a[i];}
+        if(pogrupowane[i][1]<pogrupowane[i-1][1]){min=pogrupowane[i][1];}
     }
-    return (max-min)/suma;   
+    return 1-((max-min)/suma);   
 }
 
 bool czy_duplikat(vector<string> a, string cel)//sprawdza czy wartosc jest duplikatem
@@ -71,6 +88,7 @@ int main(){
     vector<vector<int>> dane;//vector 2d do przechowywania danych z bazy
     vector<string> slownik;//przechowuje stringi z bady danych
     string bin;//przechowuje informacje podreczne
+    vector<string> naglowek;//przechowuje nazwy nagłówków
     
     int liczba_iteracji=0;//określa liczbe iteracji poniższego while
     while(getline(odczyt, wiersz)){//odczytanie danych i transport do wektora dane i uzupełnienie słownika
@@ -80,10 +98,9 @@ int main(){
             {
                 if(wiersz[i]==','){liczba_atrybutow++;}
             }
-            string naglowek[liczba_atrybutow];//przechowuje nazwy nagłówków
             for(int i=0; i < liczba_atrybutow; i++)
             {
-                naglowek[i]=wyodrebnij(wiersz, i);
+                naglowek.push_back(wyodrebnij(wiersz, i));
             }   
         }else{
             dane.push_back({0,0,0,0,0,0,0,0,0,0});//dynamicznie powiekszam dane
@@ -106,6 +123,10 @@ int main(){
     odczyt.close();
     int liczba_wierszy=liczba_iteracji-1;//dla ułatwienia
 
+    for(int i=0; i<naglowek.size()-1;i++)
+    {
+        cout << "Entropia dla kategori "<< naglowek[i] <<" to " << okresl_entropie(dane,i)*100 <<"%"<<endl;
+    }
     
 
     return 0;
