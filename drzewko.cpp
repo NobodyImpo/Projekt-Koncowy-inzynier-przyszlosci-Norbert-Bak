@@ -1,82 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <math.h>
+#include <funkcje.h>
 using namespace std;
-
-string wyodrebnij(string linia, int cel)//funkcja wyodrebnia konkretną komór z wiersza
-{
-    string odpowiedz="";
-    int przecinek=0;
-    for(int i=0;i<linia.size();i++)
-    {
-        if(linia[i]==','){przecinek++;}
-        if(przecinek==cel && linia[i]!=','){odpowiedz=odpowiedz + linia[i];}
-        if(przecinek>cel){break;}
-    }
-    return odpowiedz;
-}
-
-float okresl_entropie(vector<vector<int>> a, int cel)//określa entrope(poziom rozporwadznia wartości: 0% wartości są rozprowadzone równomiernie, 100% wartości są skoncetrowane w jednym punkcie)
-{
-    vector<vector<int>> pogrupowane;//zawiera pogrupowane wartości
-    int juz_pogrupowane = 0;
-    for(int i=0; i<a.size(); i++){//iteruje przez wszystkie wersy a
-        juz_pogrupowane=0;
-        for(int b=0; b<pogrupowane.size();b++)//iteruje przez wszystkie wersy pogrupowanie
-        {
-            if(a[i][cel]==pogrupowane[b][0])//jeśli wers z a jest do już istniejącej
-            {
-                pogrupowane[b][1]=pogrupowane[b][1]+a[i][9];//jeśli wiersz w wektora a już się znajduje w pogrupowane to dodaje wartość
-                juz_pogrupowane++;
-            }   
-        }
-        if(juz_pogrupowane==0)
-        {
-            pogrupowane.push_back({a[i][cel], a[i][9]});//jeśli wiersz nie znajduje się w pogrupowane to go dodaje
-        }
-    }
-    int max=0;
-    int min=0;
-    float suma=0;
-    for(int i=0; i<pogrupowane.size(); i++)
-    {
-        suma=suma+pogrupowane[i][1];
-    }
-    max=pogrupowane[0][1];
-    for(int i=1; i<pogrupowane.size(); i++)
-    {
-        if(pogrupowane[i][1]>pogrupowane[i-1][1]){max=pogrupowane[i][1];}
-    }
-    min=pogrupowane[0][1];
-    for(int i=1; i<pogrupowane.size(); i++)
-    {
-        if(pogrupowane[i][1]<pogrupowane[i-1][1]){min=pogrupowane[i][1];}
-    }
-    return 1-((max-min)/suma);   
-}
-
-bool czy_duplikat(vector<string> a, string cel)//sprawdza czy wartosc jest duplikatem
-{
-    for(int i=0; i < a.size();i++)
-    {
-        if(a[i]==cel)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-int znajdz_duplikat(vector<string> a, string cel)//znajduje pozycje duplikatu
-{
-    for(int i=0; i < a.size();i++)
-    {
-        if(a[i]==cel)
-        {
-            return i;
-        }
-    }
-    return -1;
-}
 
 int main(){
 
@@ -84,6 +11,7 @@ int main(){
     string wiersz;
 
     int liczba_atrybutow=1;//określa liczbe atrybutów w bazie danych
+    int glowna_zmienna=9;//wartość dla której wykonujemy analize
 
     vector<vector<int>> dane;//vector 2d do przechowywania danych z bazy
     vector<string> slownik;//przechowuje stringi z bady danych
@@ -107,28 +35,81 @@ int main(){
             dane.push_back({0,0,0,0,0,0,0,0,0,0});//dynamicznie powiekszam dane
             for(int i=0; i<liczba_atrybutow; i++)
             {
-                bin = wyodrebnij(wiersz, i);//bin przechowuje wartosc danej komór aby zmienszyć ilosć potrzebnych obliczeń
-                if(czy_duplikat(slownik, bin))//sprawdza czy zawartość komurki jest duplikatem
+                if(i!=glowna_zmienna)
                 {
-                    dane[liczba_iteracji-1][i]=znajdz_duplikat(slownik, bin);//wpisuje id duplikatu
+                    bin = wyodrebnij(wiersz, i);//bin przechowuje wartosc danej komór aby zmienszyć ilosć potrzebnych obliczeń
+                    if(czy_duplikat(slownik, bin))//sprawdza czy zawartość komurki jest duplikatem
+                    {
+                        dane[liczba_iteracji-1][i]=znajdz_duplikat(slownik, bin);//wpisuje id duplikatu
+                    }
+                    else
+                    {
+                        dane[liczba_iteracji-1][i]=slownik.size();//wpisuje nowe id
+                        slownik.push_back(bin);//wpisuje string do slownik
+                    }
                 }
-                else
-                {
-                    dane[liczba_iteracji-1][i]=slownik.size();//wpisuje nowe id
-                    slownik.push_back(bin);//wpisuje string do slownik
-                }
+            }
+            if(wyodrebnij(wiersz,glowna_zmienna)=="Pass")
+            {
+                dane[liczba_iteracji-1][glowna_zmienna]=1;
+            }else{
+                dane[liczba_iteracji-1][glowna_zmienna]=0;
             }
         }
         liczba_iteracji++;//śledzi dokonane iteracje
     }
     odczyt.close();
     int liczba_wierszy=liczba_iteracji-1;//dla ułatwienia
+    vector<vector<vector<int>>> wezly;//przechowuje wezly
+    wezly.push_back(dane);
+
+    int typ_danych[liczba_atrybutow];//przechowuje typ danych 1-dane binarne(tylko dwa rodzaje) 2-dane liczbowe(liczby) 3-oznaczenia(nie liczby z przynajmiej 3 rodzajami)
+    int liczba_rodzai=0;
+    bool nieliczba=0;
+    for(int a=0;a<liczba_atrybutow;a++)//okresla typ danych dla atrybutów 
+    {
+        liczba_rodzai=0;
+        nieliczba=0;
+        for(int b=0;b<liczba_wierszy;b++)
+        {
+            for(int c=0;c<slownik.size();c++)
+            {
+                if(slownik[dane[b][a]]==slownik[c])
+                {
+                    liczba_rodzai++;
+                }
+            }
+            if(!(czy_liczba(slownik[dane[b][a]])))
+            {
+                nieliczba=1;
+            }
+        }
+        if(liczba_rodzai==2)
+        {
+            typ_danych[a]=1;
+        }else{
+            if(nieliczba==1)
+            {
+                typ_danych[a]=3;
+            }else{
+                typ_danych[a]=2;
+            }
+        }
+    }
 
     for(int i=0; i<naglowek.size()-1;i++)
     {
-        cout << "Entropia dla kategori "<< naglowek[i] <<" to " << okresl_entropie(dane,i)*100 <<"%"<<endl;
+        cout << "Entropia dla kategori "<< naglowek[i] <<" to " << okresl_entropie(wezly[0],i)*100 <<"%"<<endl;
     }
-    
+    cout << endl;
+
+    for(int i=0; i<liczba_atrybutow-1;i++)
+    {
+        cout<<slownik[wezly[0][0][i]]<<',';
+    }
+    cout << wezly[0][0][glowna_zmienna];
+    cout << endl;
+    cout << "podzial dla " << slownik[okresl_miejsce_podzialu_typ1(wezly[0],1,glowna_zmienna)];
 
     return 0;
 }
