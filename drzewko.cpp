@@ -92,6 +92,7 @@ int main(){
     
     int liczba_iteracji=0;//określa liczbe iteracji poniższego while
     while(getline(odczyt, wiersz)){//odczytanie danych i transport do wektora dane i uzupełnienie słownika
+        //pojawił się mi jakiś problem przez który moge użyć while(getline()) wyłącznie raz, wiec musiałem wszystko zmieścić do jednej petli
         if(liczba_iteracji==0)//przewsza iteracja to nagłówki więc je wykluczam z danych
         {
             for(int i=0; i < size(wiersz); i++)
