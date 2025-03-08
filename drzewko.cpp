@@ -16,7 +16,7 @@ string wyodrebnij(string linia, int cel)//funkcja wyodrebnia konkretną komór z
     return odpowiedz;
 }
 
-float okresl_entropie(vector<vector<int>> a, int cel)
+float okresl_entropie(vector<vector<int>> a, int cel)//określa entrope(poziom rozporwadznia wartości: 0% wartości są rozprowadzone równomiernie, 100% wartości są skoncetrowane w jednym punkcie)
 {
     vector<vector<int>> pogrupowane;//zawiera pogrupowane wartości
     int juz_pogrupowane = 0;
