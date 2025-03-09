@@ -2,7 +2,8 @@
 #include <fstream>
 #include <vector>
 #include <math.h>
-#include <funkcje.h>
+#include "funkcje/entropia.h"
+#include "funkcje/odczyt_danych.h"
 using namespace std;
 
 int main(){
@@ -10,7 +11,7 @@ int main(){
     ifstream odczyt("student_performance_dataset.csv");
     string wiersz;
 
-    int liczba_atrybutow=1;//określa liczbe atrybutów w bazie danych
+    int liczba_atrybutow=0;//określa liczbe atrybutów w bazie danych
     int glowna_zmienna=9;//wartość dla której wykonujemy analize
 
     vector<vector<int>> dane;//vector 2d do przechowywania danych z bazy
@@ -97,19 +98,7 @@ int main(){
         }
     }
 
-    for(int i=0; i<naglowek.size()-1;i++)
-    {
-        cout << "Entropia dla kategori "<< naglowek[i] <<" to " << okresl_entropie(wezly[0],i)*100 <<"%"<<endl;
-    }
-    cout << endl;
-
-    for(int i=0; i<liczba_atrybutow-1;i++)
-    {
-        cout<<slownik[wezly[0][0][i]]<<',';
-    }
-    cout << wezly[0][0][glowna_zmienna];
-    cout << endl;
-    cout << "podzial dla " << slownik[okresl_miejsce_podzialu_typ1(wezly[0],1,glowna_zmienna)];
-
+    cout << okresl_miejsce_podzialu_typ2(wezly[0], 2, slownik, glowna_zmienna);
+    
     return 0;
 }
