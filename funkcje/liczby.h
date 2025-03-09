@@ -37,3 +37,12 @@ float zamien_na_liczba(string a)
     }
     return liczba;
 }
+int bezwzgledna(int a)
+{
+    if(a<0)
+    {
+        return -a;
+    }else{
+        return a;
+    }
+}
