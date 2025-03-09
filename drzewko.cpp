@@ -4,6 +4,7 @@
 #include <math.h>
 #include "funkcje/entropia.h"
 #include "funkcje/odczyt_danych.h"
+#include "funkcje/logistyka.h"
 using namespace std;
 
 int main(){
@@ -22,7 +23,7 @@ int main(){
     int liczba_iteracji=0;//określa liczbe iteracji poniższego while
     while(getline(odczyt, wiersz)){//odczytanie danych i transport do wektora dane i uzupełnienie słownika
         //pojawił się mi jakiś problem przez który moge użyć while(getline()) wyłącznie raz, wiec musiałem wszystko zmieścić do jednej petli
-        if(liczba_iteracji==0)//przewsza iteracja to nagłówki więc je wykluczam z danych
+        if(liczba_iteracji==0)//pierwsza iteracja to nagłówki więc je wykluczam z danych
         {
             for(int i=0; i < size(wiersz); i++)
             {
@@ -31,23 +32,30 @@ int main(){
             for(int i=0; i < liczba_atrybutow; i++)
             {
                 naglowek.push_back(wyodrebnij(wiersz, i));
-            }   
+            } 
+
         }else{
             dane.push_back({0,0,0,0,0,0,0,0,0,0});//dynamicznie powiekszam dane
-            for(int i=0; i<liczba_atrybutow; i++)
+            for(int i=0; i<liczba_atrybutow; i++)//uzupełnianie slownika
             {
                 if(i!=glowna_zmienna)
                 {
                     bin = wyodrebnij(wiersz, i);//bin przechowuje wartosc danej komór aby zmienszyć ilosć potrzebnych obliczeń
-                    if(czy_duplikat(slownik, bin))//sprawdza czy zawartość komurki jest duplikatem
+                    if(!(czy_liczba(bin)))
                     {
-                        dane[liczba_iteracji-1][i]=znajdz_duplikat(slownik, bin);//wpisuje id duplikatu
+                        if(czy_duplikat(slownik, bin))//sprawdza czy zawartość komurki jest duplikatem
+                        {
+                            dane[liczba_iteracji-1][i]=znajdz_duplikat(slownik, bin);//wpisuje id duplikatu
+                        }
+                        else
+                        {
+                            dane[liczba_iteracji-1][i]=slownik.size();//wpisuje nowe id
+                            slownik.push_back(bin);//wpisuje string do slownik
+                        }
+                    }else{
+                        dane[liczba_iteracji-1][i]=int(zamien_na_liczba(bin));
                     }
-                    else
-                    {
-                        dane[liczba_iteracji-1][i]=slownik.size();//wpisuje nowe id
-                        slownik.push_back(bin);//wpisuje string do slownik
-                    }
+                    
                 }
             }
             if(wyodrebnij(wiersz,glowna_zmienna)=="Pass")
@@ -63,6 +71,7 @@ int main(){
     int liczba_wierszy=liczba_iteracji-1;//dla ułatwienia
     vector<vector<vector<int>>> wezly;//przechowuje wezly
     wezly.push_back(dane);
+    vector<vector<int>> decyzje//okresla decyzje drzewka
 
     int typ_danych[liczba_atrybutow];//przechowuje typ danych 1-dane binarne(tylko dwa rodzaje) 2-dane liczbowe(liczby) 3-oznaczenia(nie liczby z przynajmiej 3 rodzajami)
     int liczba_rodzai=0;
@@ -97,8 +106,12 @@ int main(){
             }
         }
     }
-
-    cout << okresl_miejsce_podzialu_typ2(wezly[0], 2, slownik, glowna_zmienna);
-    
+    for(int i=1; i<liczba_atrybutow; i++)
+    {
+        cout<<naglowek[i]<<":"<<okresl_entropie(pogrupuj(wezly[0], i, glowna_zmienna))*100<<"%"<<" entropii danych"<<endl;
+    }
+    cout << endl;
+    cout << okresl_miejsce_podzialu_typ2(posortuj(pogrupuj(wezly[0], 2, glowna_zmienna)));
+        
     return 0;
 }
