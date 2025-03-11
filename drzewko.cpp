@@ -27,7 +27,7 @@ float okresl_entropie(vector<vector<int>> dane)//określa entrope(poziom rozporw
     return(1-(roznicza/suma));
 }
 
-bool czy_jednorodna(vector<vector<int>> dane)
+bool czy_lisc(vector<vector<int>> dane)
 {
     int podstawa=dane[0][9];
     for(int i=1; i<dane.size();i++)
@@ -380,12 +380,6 @@ float min_entropia(vector<vector<int>> dane, int glowna_zmienna)
     return int(min_entropia[1]);
 }
 
-int test(vector<vector<int>> a)
-{
-    vector<vector<int>> b;
-    return 1;
-}
-
 int main(){
 
     ifstream odczyt("student_performance_dataset.csv");
@@ -450,8 +444,7 @@ int main(){
     int liczba_wierszy=liczba_iteracji-1;//dla ułatwienia
     vector<vector<vector<int>>> wezly;//przechowuje wezly
     wezly.push_back(dane);
-    vector<vector<int>> decyzje;//okresla decyzje drzewka
-    vector<int> p_decyzje;//pomocnicza decyzji
+    
 
     
     //przechowuje typ danych 1-dane binarne(tylko dwa rodzaje) 2-dane liczbowe(liczby) 3-oznaczenia(nie liczby z przynajmiej 3 rodzajami)
@@ -459,163 +452,213 @@ int main(){
     vector<vector<int>> poziom;//okresla jaki wezeł jest na jakim poziomie
     int poziom_drzewa=0;//okresla poziom drzewa
     int wezel=0;//okresla liczbe wezłów
-    int liczba_zgodnosci;
+    int liczba_lisci;
     poziom.push_back({wezel});
-    bool jednorodnosc=0;//okresla czy wszystkie wezly na poziomie są posortowane
+    bool jednorodnosc=0;//okresla czy wszystkie wezly na poziomie są lisciami
     int min_e=0;
     int podzial;
     vector<int> pomocniczy;
-    vector<vector<int>> test;
+    
+    vector<vector<int>> decyzje;//okresla decyzje drzewka
+    vector<int> p_decyzje;//pomocnicza decyzji
 
-    cout << "Rozpoczecie petli:"<<endl;
-    while(!(jednorodnosc))//pentla aż wszystkie zbiory zostaną posortowane
+    while(!(jednorodnosc))//pentla aż pozostaną tylko liście
     {
-        cout << poziom_drzewa<<": sprawdzanie jednosci"<<endl;
-        //SPRAWDZANIE JEDNORODNOSCI
-        liczba_zgodnosci=0;
-        cout << poziom_drzewa << ": zamartosc poziomu " << poziom_drzewa << ": " << poziom[poziom_drzewa].size()<<endl;
-        for(int i=0; i<poziom[poziom_drzewa].size();i++)
+        //SPRAWDZANIE CZY NA POZIOMIE DRZEWA ZNAJDUJĄ SIĘ TYLKO LIŚCIE
+        liczba_lisci=0;
+        for(int i=0; i<poziom[poziom_drzewa].size();i++)//dla wszystkich wezłów na poziomie
         {
-            liczba_zgodnosci=liczba_zgodnosci + int(czy_jednorodna(wezly[poziom[poziom_drzewa][i]]));
+            liczba_lisci=liczba_lisci + int(czy_lisc(wezly[poziom[poziom_drzewa][i]]));//zlicza liczbe lisci
         }
-        if((poziom[poziom_drzewa].size()-liczba_zgodnosci)==0)
+        if((poziom[poziom_drzewa].size()-liczba_lisci)==0)//jesli wszystkie węzły to liscie to konczy pentle
         {
             jednorodnosc=1;
         }
         //PODZIAL
-        if(jednorodnosc==0)
-        {
-            cout << poziom_drzewa<<": jednosci nie osiagnieta"<<endl;
             pomocniczy.clear();
             for(int i=0; i<poziom[poziom_drzewa].size();i++)//Dla wszystkich wezłów danego poziomu drzewa
             {
                 p_decyzje.clear();
-                
                 min_e = min_entropia(wezly[poziom[poziom_drzewa][i]], glowna_zmienna);//Znaduje atrybut z najmiejszą entropią
-                
-                cout << poziom_drzewa<<": podzial wezel["<< poziom[poziom_drzewa][i] <<"] przez " << naglowek[min_e]<<endl;
-                
-                cout << poziom_drzewa<<": typ zmiennej " << typ_danych[min_e]<<endl;
-                switch(typ_danych[min_e])
+                switch(typ_danych[min_e])//W zależności od typu atrybutu
                 {
-                    case 1:
-                    if(!(czy_jednorodna(wezly[poziom[poziom_drzewa][i]])))
+                    case 1://dane są binarne
+                    if(!(czy_lisc(wezly[poziom[poziom_drzewa][i]])))//wezeł to nie liść
                     {
-                        cout << poziom_drzewa<<": miejsce podzialu " << 0<<endl;
+                        //Przypisuje cześć która nie spełniła warunku (równa jest 0) do wolnego miejsca na poziomie drzewa
                         wezel++;
                         pomocniczy.push_back(wezel);
                         wezly.push_back(podziel_typ1(wezly[poziom[poziom_drzewa][i]], min_e, 0));
-                        cout << poziom_drzewa<<": przypisanie zawartosci dla wezel[" << wezel<<"]:"<< wezly[wezel].size()<<endl;
+                        //Przypisuje cześć która spełniła warunku (równa jest 1) do wolnego miejsca na poziomie drzewa
                         wezel++;
                         pomocniczy.push_back(wezel);
                         wezly.push_back(podziel_typ1(wezly[poziom[poziom_drzewa][i]], min_e, 1));
-                        cout << poziom_drzewa<<": przypisanie zawartosci dla wezel[" << wezel<<"]:"<< wezly[wezel].size()<<endl;
-                        p_decyzje.push_back(typ_danych[min_e]);
-                        p_decyzje.push_back(0);
-                    }else{
-                        cout << poziom_drzewa<<": znaleziono lisc:"<<wezly[poziom[poziom_drzewa][i]].size()<<endl;
+                        //Zapisuje informacje o podziale do wektora decyzje
+                        p_decyzje.push_back(min_e);//atrybut
+                        p_decyzje.push_back(typ_danych[min_e]);//typ danych
+                        p_decyzje.push_back(0);//podzial
+                        p_decyzje.push_back(0);//wartosc
+                        p_decyzje.push_back(wezel-1);//adres negatynej odpowiedzi
+                        p_decyzje.push_back(wezel);//adres pozytywnych odpowiedzi
+                    }else{//wezeł to liść
+                        //Zapisuje informacje o liściu do wektora decyzje
+                        p_decyzje.push_back(-1);
+                        p_decyzje.push_back(0);//typ dancyh
+                        p_decyzje.push_back(0);//podzial
+                        p_decyzje.push_back(wezly[poziom[poziom_drzewa][i]][0][glowna_zmienna]);//wartosc
                         p_decyzje.push_back(0);
                         p_decyzje.push_back(0);
                     }break;
                 
-                    case 2:
-                    if(!(czy_jednorodna(wezly[poziom[poziom_drzewa][i]])))
+                    case 2://dane są liczbami
+                    if(!(czy_lisc(wezly[poziom[poziom_drzewa][i]])))//wezel to nie liść
                     {
+                        //okresle miejsce podziału danych
                         podzial = okresl_miejsce_podzialu_typ2(posortuj(pogrupuj(wezly[poziom[poziom_drzewa][i]], min_e, glowna_zmienna)));
-                        cout << poziom_drzewa<<": miejsce podzialu " << podzial<<endl;
-                        //pomocniczy.clear();
+                        //Przypisuje część która jest równa bądz mniejsza od miejsca podziału
                         wezel++;
                         pomocniczy.push_back(wezel);
                         wezly.push_back(podziel_typ2(wezly[poziom[poziom_drzewa][i]], min_e, podzial, 0));
-                        cout << poziom_drzewa<<": przypisanie zawartosci dla wezel[" << wezel<<"]:"<< wezly[wezel].size() <<endl;
+                        //Przypisuje część która jest większa od miejsca podziału
                         wezel++;
                         pomocniczy.push_back(wezel);
                         wezly.push_back(podziel_typ2(wezly[poziom[poziom_drzewa][i]], min_e, podzial, 1));
-                        cout << poziom_drzewa<<": przypisanie zawartosci dla wezel[" << wezel<<"]:"<< wezly[wezel].size() <<endl;
-                        //poziom.push_back(pomocniczy);
+                        //Zapisuje informacje o podziale do wektora decyzje
+                        p_decyzje.push_back(min_e);
                         p_decyzje.push_back(typ_danych[min_e]);
                         p_decyzje.push_back(podzial);
-                    }else{
-                        cout << poziom_drzewa<<": znaleziono lisc:"<<wezly[poziom[poziom_drzewa][i]].size()<<endl;
+                        p_decyzje.push_back(0);//wartosc
+                        p_decyzje.push_back(wezel-1);//adres negatynej odpowiedzi
+                        p_decyzje.push_back(wezel);//adres pozytywnych odpowiedzi
+                    }else{//wezel to liść
+                        //Zapisuje informacje o liściu
+                        p_decyzje.push_back(-1);
+                        p_decyzje.push_back(0);
+                        p_decyzje.push_back(0);
+                        p_decyzje.push_back(wezly[poziom[poziom_drzewa][i]][0][glowna_zmienna]);//wartosc
                         p_decyzje.push_back(0);
                         p_decyzje.push_back(0);
                     }
-                        if(wezly[wezel].size()==0||wezly[wezel-1].size()==0)
-                        {
-                            cout << "BLAD!"<<endl;
-                            test=posortuj(pogrupuj(wezly[wezel], min_e, glowna_zmienna));
-                            for(int i=0; i < test.size();i++)
-                            {
-                                cout<<test[i][0]<<":"<<test[i][1]<<":"<<test[i][2]<<endl;
-                            }
-                            cout << endl;
-                            test.clear();
-                            test=posortuj(pogrupuj(wezly[wezel-1], min_e, glowna_zmienna));
-                            for(int i=0; i < test.size();i++)
-                            {
-                                cout<<test[i][0]<<":"<<test[i][1]<<":"<<test[i][2]<<endl;
-                            }
-                        }
                     break;
 
-                    case 3:
-                    if(!(czy_jednorodna(wezly[poziom[poziom_drzewa][i]])))
+                    case 3://dane są oznaczeniami
+                    if(!(czy_lisc(wezly[poziom[poziom_drzewa][i]])))//węzeł to nie liść
                     {
+                        //okresla oznaczenie dla którego dojdzie do podziału
                         podzial=okresl_miejsce_podzialu_typ3(pogrupuj(wezly[poziom[poziom_drzewa][i]], min_e, glowna_zmienna));
-                        cout << poziom_drzewa<<": miejsce podzialu " << podzial<<endl;
-                        //pomocniczy.clear();
+                        //Przypisuje część która zamiera okreslone oznacznie
                         wezel++;
                         pomocniczy.push_back(wezel);
                         wezly.push_back(podziel_typ3(wezly[poziom[poziom_drzewa][i]], min_e, podzial, 0));
-                        cout << poziom_drzewa<<": przypisanie zawartosci dla wezel[" << wezel<<"]:"<< wezly[wezel].size()<<endl;
+                        //Przypisuje część która nie zamiera okreslonego oznaczenia
                         wezel++;
                         pomocniczy.push_back(wezel);
                         wezly.push_back(podziel_typ3(wezly[poziom[poziom_drzewa][i]], min_e, podzial, 1));
-                        cout << poziom_drzewa<<": przypisanie zawartosci dla wezel[" << wezel<<"]:"<< wezly[wezel].size()<<endl;
-                        //poziom.push_back(pomocniczy);
+                        //Zapisuje informacje o podziale
+                        p_decyzje.push_back(min_e);
                         p_decyzje.push_back(typ_danych[min_e]);
                         p_decyzje.push_back(podzial);
+                        p_decyzje.push_back(0);//wartosc
+                        p_decyzje.push_back(wezel-1);//adres negatynej odpowiedzi
+                        p_decyzje.push_back(wezel);//adres pozytywnych odpowiedzi
                     }else{
-                        cout << poziom_drzewa<<": znaleziono lisc:"<<wezly[poziom[poziom_drzewa][i]].size()<<endl;
+                        //zapisje informacje o liściu
+                        p_decyzje.push_back(-1);
+                        p_decyzje.push_back(0);
+                        p_decyzje.push_back(0);
+                        p_decyzje.push_back(wezly[poziom[poziom_drzewa][i]][0][glowna_zmienna]);//wartosc
                         p_decyzje.push_back(0);
                         p_decyzje.push_back(0);
                     }break;
                 }
-                decyzje.push_back(p_decyzje);
+                decyzje.push_back(p_decyzje);//zapisuje informacje o podziałach i liściach
             }
-            poziom.push_back(pomocniczy);
-            
+            poziom.push_back(pomocniczy);//zapisuje informacje o zawartości poziomu
             poziom_drzewa++;
-        }else{
-            cout << poziom_drzewa<<": jednosc osiagnieta" <<endl;
-        }
-        cout << endl;
-        //if(wezel==20)
-        //{
-            //break;
-        //}
     }
-    cout << "SUKCES!"<<endl<<endl;
-    cout << "decyzje:" <<endl;
+    ofstream zapis("decyzje.txt");
     for(int i=0; i<decyzje.size();i++)
     {
-        cout << "wezel["<<i<<"]:";
-        switch(decyzje[i][0])
+        zapis << decyzje[i][0] <<"," << decyzje[i][1] <<","<<decyzje[i][2]<<","<<decyzje[i][3]<<","<<decyzje[i][4]<<","<<decyzje[i][5]<<endl;
+    }
+    zapis.close();
+    //return 0;
+    vector<int> pytanie;
+    string odpowiedz;
+    for(int i=0; i<liczba_atrybutow;i++)
+    {
+        cout << "podaj " << naglowek[i]<<": ";
+        cin >> odpowiedz;
+        switch(typ_danych[i])
         {
-            case 0:
-            cout<<"lisc"<<endl;
-            break;
             case 1:
-            cout << "czy "<<decyzje[i][1]<<endl;
+            for(int a=0; a<slownik.size();a++)
+            {
+                if(slownik[a]==odpowiedz)
+                {
+                    pytanie.push_back(a);
+                }
+            }
             break;
             case 2:
-            cout << "czy wieksze od "<<decyzje[i][1]<<endl;
+            pytanie.push_back(int(zamien_na_liczba(odpowiedz)));
             break;
             case 3:
-            cout << "czy "<<slownik[decyzje[i][1]]<<endl;
+            for(int a=0; a<slownik.size();a++)
+            {
+                if(slownik[a]==odpowiedz)
+                {
+                    pytanie.push_back(a);
+                }
+            }
             break;
         }
     }
+    cout << endl;
+    int wynik;
+    
+    int i=0;
+    while(true)
+    {
+        if(decyzje[i][0]==-1)
+        {
+            cout << "Wynik: "<< decyzje[i][3];
+            wynik = decyzje[i][3];
+            break;
+        }else{
+            switch(decyzje[i][1])
+            {
+                case 1:
+                    if(pytanie[decyzje[i][0]]>decyzje[i][2])
+                    {
+                        i=decyzje[i][5];
+                    }else{
+                        i=decyzje[i][4];
+                    }
+                    break;
+                case 2:
+                    if(pytanie[decyzje[i][0]]>decyzje[i][2])
+                    {
+                        i=decyzje[i][5];
+                    }else{
+                        i=decyzje[i][4];
+                    }
+                    break;
+                case 3:
+                    if(pytanie[decyzje[i][0]]==decyzje[i][2])
+                    {
+                        i=decyzje[i][5];
+                    }else{
+                        i=decyzje[i][4];
+                    }
+                    break;
+            }
+            
+        }
+    }
+    ofstream answer("wynik.txt");
+    answer << wynik;
+    answer.close();
 
     return 0;
 }
