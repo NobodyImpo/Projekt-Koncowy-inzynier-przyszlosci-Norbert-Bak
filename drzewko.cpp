@@ -385,13 +385,14 @@ int main(){
     ifstream odczyt("student_performance_dataset.csv");
     string wiersz;
 
-    int liczba_atrybutow=0;//określa liczbe atrybutów w bazie danych
+    int liczba_atrybutow=1;//określa liczbe atrybutów w bazie danych
     int glowna_zmienna=9;//wartość dla której wykonujemy analize
 
     vector<vector<int>> dane;//vector 2d do przechowywania danych z bazy
     vector<string> slownik;//przechowuje stringi z bady danych
     string bin;//przechowuje informacje podreczne
     vector<string> naglowek;//przechowuje nazwy nagłówków
+    vector<int> wiersze;
     
     int liczba_iteracji=0;//określa liczbe iteracji poniższego while
     while(getline(odczyt, wiersz)){//odczytanie danych i transport do wektora dane i uzupełnienie słownika
@@ -405,10 +406,9 @@ int main(){
             for(int i=0; i < liczba_atrybutow; i++)
             {
                 naglowek.push_back(wyodrebnij(wiersz, i));
-            } 
-
+            }
         }else{
-            dane.push_back({0,0,0,0,0,0,0,0,0,0});//dynamicznie powiekszam dane
+            
             for(int i=0; i<liczba_atrybutow; i++)//uzupełnianie slownika
             {
                 if(i!=glowna_zmienna)
@@ -418,25 +418,28 @@ int main(){
                     {
                         if(czy_duplikat(slownik, bin))//sprawdza czy zawartość komurki jest duplikatem
                         {
-                            dane[liczba_iteracji-1][i]=znajdz_duplikat(slownik, bin);//wpisuje id duplikatu
+                            wiersze.push_back(znajdz_duplikat(slownik, bin));//wpisuje id duplikatu
                         }
                         else
                         {
-                            dane[liczba_iteracji-1][i]=slownik.size();//wpisuje nowe id
+                            wiersze.push_back(slownik.size());//wpisuje nowe id
                             slownik.push_back(bin);//wpisuje string do slownik
                         }
                     }else{
-                        dane[liczba_iteracji-1][i]=int(zamien_na_liczba(bin));
+                        wiersze.push_back(int(zamien_na_liczba(bin)));
                     }
                     
+                }else{
+                    if(wyodrebnij(wiersz,glowna_zmienna)=="Pass")
+                    {
+                        wiersze.push_back(1);
+                    }else{
+                        wiersze.push_back(0);
+                    }
                 }
             }
-            if(wyodrebnij(wiersz,glowna_zmienna)=="Pass")
-            {
-                dane[liczba_iteracji-1][glowna_zmienna]=1;
-            }else{
-                dane[liczba_iteracji-1][glowna_zmienna]=0;
-            }
+            dane.push_back(wiersze);//dynamicznie powiekszam dane
+            wiersze.clear();
         }
         liczba_iteracji++;//śledzi dokonane iteracje
     }
